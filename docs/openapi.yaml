@@ -1,0 +1,18 @@
+openapi: 3.0.0
+info:
+  title: PHP REST API Auth
+  version: 1.0.0
+
+paths:
+  /api/register:
+    post:
+      summary: Register user
+  /api/login:
+    post:
+      summary: Login user
+  /api/profile:
+    get:
+      summary: Get profile (JWT protected)
+  /api/admin:
+    get:
+      summary: Admin only endpoint
