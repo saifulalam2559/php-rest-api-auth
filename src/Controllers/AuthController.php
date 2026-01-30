@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Models\User;
 use App\Helpers\Response;
+use App\Middleware\RoleMiddleware;
 
 class AuthController
 {
@@ -49,6 +50,20 @@ public function profile()
 
     Response::json(['user' => $user]);
 }
+
+
+
+
+public function adminOnly()
+{
+    $payload = AuthMiddleware::handle();
+    $user = User::findById($payload['user_id']);
+
+    RoleMiddleware::require('admin', $user);
+
+    Response::json(['message' => 'Welcome Admin', 'user' => $user]);
+}
+
 
     
 }
