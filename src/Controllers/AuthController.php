@@ -19,43 +19,36 @@ class AuthController
         Response::json(['message' => 'User registered successfully']);
     }
 
-    public function login()
-    {
-        $input = json_decode(file_get_contents('php://input'), true);
+public function login()
+{
+    $input = json_decode(file_get_contents('php://input'), true);
 
-        $user = User::findByEmail($input['email']);
+    $user = User::findByEmail($input['email']);
 
-        if (!$user || !password_verify($input['password'], $user['password'])) {
-            Response::json(['error' => 'Invalid credentials'], 401);
-        }
-
-        // Simple token (for demo)
-        $token = base64_encode($user['id'] . '|' . time());
-
-        Response::json([
-            'token' => $token,
-            'user' => ['id' => $user['id'], 'email' => $user['email']]
-        ]);
+    if (!$user || !password_verify($input['password'], $user['password'])) {
+        Response::json(['error' => 'Invalid credentials'], 401);
     }
 
-    public function profile()
-    {
-        $headers = getallheaders();
-        if (empty($headers['Authorization'])) {
-            Response::json(['error' => 'Unauthorized'], 401);
-        }
+    $token = JwtHelper::generate([
+        'user_id' => $user['id'],
+        'email'   => $user['email']
+    ]);
 
-        $token = str_replace('Bearer ', '', $headers['Authorization']);
-        $parts = explode('|', base64_decode($token));
+    Response::json([
+        'token' => $token,
+        'user' => ['id' => $user['id'], 'email' => $user['email']]
+    ]);
+}
 
-        $userId = $parts[0] ?? null;
 
-        if (!$userId) {
-            Response::json(['error' => 'Invalid token'], 401);
-        }
+public function profile()
+{
+    $payload = AuthMiddleware::handle();
 
-        $user = User::findById($userId);
+    $user = User::findById($payload['user_id']);
 
-        Response::json(['user' => $user]);
-    }
+    Response::json(['user' => $user]);
+}
+
+    
 }
